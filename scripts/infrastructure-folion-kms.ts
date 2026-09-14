@@ -2,6 +2,8 @@ import { ethers } from "hardhat";
 import OnchainID from "@onchain-id/solidity";
 import TRex from "@tokenysolutions/t-rex";
 import { writeFileSync } from "fs";
+import { AwsKmsSigner } from "@cuonghx.gu-tech/ethers-aws-kms-signer";
+import "dotenv/config";
 import TransparentUpgradeableProxy from "@openzeppelin/contracts/build/contracts/TransparentUpgradeableProxy.json";
 import CountryPermitModule from "../artifacts/contracts/compliance/CountryPermitModule.sol/CountryPermitModule.json";
 import CountryRestrictModule from "../artifacts/contracts/compliance/CountryRestrictModule.sol/CountryRestrictModule.json";
@@ -15,8 +17,18 @@ import MarketplaceManager from "../artifacts/contracts/marketplace/MarketplaceMa
 import ERC3643Token from "../artifacts/contracts/token/ERC3643Token.sol/ERC3643Token.json";
 
 async function main() {
-  const appAdmin = "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC"; // replace with actual app admin address
-  const [deployer] = await ethers.getSigners(); // deployer is infraAdmin, 1st account in HH config
+  const appAdmin = process.env.APP_ADMIN_ADDRESS!;
+  console.log("App Admin Address -> %s", appAdmin);
+  const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
+  console.log("RPC URL -> %s", process.env.RPC_URL);
+  const deployer = new AwsKmsSigner(
+    {
+      keyId: process.env.KMS_KEY_ID!,
+      region: process.env.AWS_REGION!,
+    },
+    provider
+  );
+  console.log("Deployer Address -> %s", await deployer.getAddress());
 
   // OnChainID deployment
   const identityImplementation = await new ethers.ContractFactory(
