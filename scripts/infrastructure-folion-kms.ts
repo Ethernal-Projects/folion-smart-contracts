@@ -36,28 +36,28 @@ async function main() {
     OnchainID.contracts.Identity.bytecode,
     deployer
   ).deploy(deployer.address, true);
-  await identityImplementation.waitForDeployment();
+  await identityImplementation.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   const identityImplementationAuthority = await new ethers.ContractFactory(
     OnchainID.contracts.ImplementationAuthority.abi,
     OnchainID.contracts.ImplementationAuthority.bytecode,
     deployer
   ).deploy(await identityImplementation.getAddress());
-  await identityImplementationAuthority.waitForDeployment();
+  await identityImplementationAuthority.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   const identityFactory = await new ethers.ContractFactory(
     OnchainID.contracts.Factory.abi,
     OnchainID.contracts.Factory.bytecode,
     deployer
   ).deploy(await identityImplementationAuthority.getAddress());
-  await identityFactory.waitForDeployment();
+  await identityFactory.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   const gateway = await new ethers.ContractFactory(
     OnchainID.contracts.Gateway.abi,
     OnchainID.contracts.Gateway.bytecode,
     deployer
   ).deploy(await identityFactory.getAddress(), [appAdmin]); // anyone can be signer
-  await gateway.waitForDeployment();
+  await gateway.deploymentTransaction().wait(process.env.CONFIRMATIONS);
   // end of OnChainID deployment
 
   const trustedIssuersRegistryImplementation = await new ethers.ContractFactory(
@@ -65,7 +65,7 @@ async function main() {
     TRex.contracts.TrustedIssuersRegistry.bytecode,
     deployer
   ).deploy();
-  await trustedIssuersRegistryImplementation.waitForDeployment();
+  await trustedIssuersRegistryImplementation.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   const identityRegistryStorageImplementation =
     await new ethers.ContractFactory(
@@ -73,35 +73,35 @@ async function main() {
       TRex.contracts.IdentityRegistryStorage.bytecode,
       deployer
     ).deploy();
-  await identityRegistryStorageImplementation.waitForDeployment();
+  await identityRegistryStorageImplementation.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   const identityRegistryImplementation = await new ethers.ContractFactory(
     TRex.contracts.IdentityRegistry.abi,
     TRex.contracts.IdentityRegistry.bytecode,
     deployer
   ).deploy();
-  await identityRegistryImplementation.waitForDeployment();
+  await identityRegistryImplementation.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   const modularComplianceImplementation = await new ethers.ContractFactory(
     TRex.contracts.ModularCompliance.abi,
     TRex.contracts.ModularCompliance.bytecode,
     deployer
   ).deploy();
-  await modularComplianceImplementation.waitForDeployment();
+  await modularComplianceImplementation.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   const tokenImplementation = await new ethers.ContractFactory(
     ERC3643Token.abi,
     ERC3643Token.bytecode,
     deployer
   ).deploy();
-  await tokenImplementation.waitForDeployment();
+  await tokenImplementation.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   const claimTopicsRegistryImplementation = await new ethers.ContractFactory(
     TRex.contracts.ClaimTopicsRegistry.abi,
     TRex.contracts.ClaimTopicsRegistry.bytecode,
     deployer
   ).deploy();
-  await claimTopicsRegistryImplementation.waitForDeployment();
+  await claimTopicsRegistryImplementation.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   const versionStruct = {
     major: 4,
@@ -123,38 +123,38 @@ async function main() {
     TRex.contracts.TREXImplementationAuthority.bytecode,
     deployer
   ).deploy(true, ethers.ZeroAddress, ethers.ZeroAddress);
-  await trexImplementationAuthority.waitForDeployment();
+  await trexImplementationAuthority.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   const txAddTREX = await trexImplementationAuthority.connect(deployer).addAndUseTREXVersion(versionStruct, contractsStruct);
-  await txAddTREX.wait();
+  await txAddTREX.wait(process.env.CONFIRMATIONS);
 
   const trexFactory = await new ethers.ContractFactory(
     TRex.contracts.TREXFactory.abi,
     TRex.contracts.TREXFactory.bytecode,
     deployer
   ).deploy(await trexImplementationAuthority.getAddress(), await identityFactory.getAddress());
-  await trexFactory.waitForDeployment();
+  await trexFactory.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   const txAddTokenFactory = await identityFactory.connect(deployer).addTokenFactory(await trexFactory.getAddress());
-  await txAddTokenFactory.wait();
+  await txAddTokenFactory.wait(process.env.CONFIRMATIONS);
 
   const trexGateway = await new ethers.ContractFactory(
     TRex.contracts.TREXGateway.abi,
     TRex.contracts.TREXGateway.bytecode,
     deployer
   ).deploy(await trexFactory.getAddress(), false);
-  await trexGateway.waitForDeployment();
+  await trexGateway.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   const txAddDeployer = await trexGateway.connect(deployer).addDeployer(appAdmin); // token deployer can be anyone
-  await txAddDeployer.wait();
+  await txAddDeployer.wait(process.env.CONFIRMATIONS);
 
   // transfer trexFactory ownership to trexGateway
   const trexGatewayOwnership = await trexFactory.connect(deployer).transferOwnership(await trexGateway.getAddress());
-  await trexGatewayOwnership.wait();
+  await trexGatewayOwnership.wait(process.env.CONFIRMATIONS);
 
   // transfer identityFactory ownership to gateway in order to allow identity creation by users
   const txTransferOwnership = await identityFactory.connect(deployer).transferOwnership(await gateway.getAddress());
-  await txTransferOwnership.wait();
+  await txTransferOwnership.wait(process.env.CONFIRMATIONS);
 
   console.log("TREXFactory address -> %s", (await trexFactory.getAddress()).toString());
   console.log("TREXGateway address -> %s", (await trexGateway.getAddress()).toString());
@@ -169,7 +169,7 @@ async function main() {
     CountryPermitModule.bytecode,
     deployer
   ).deploy();
-  await countryPermitModule.waitForDeployment();
+  await countryPermitModule.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   const countryPermitModuleProxy = await new ethers.ContractFactory(
     TRex.contracts.ModuleProxy.abi,
@@ -179,7 +179,7 @@ async function main() {
     await countryPermitModule.getAddress(),
     countryPermitModule.interface.encodeFunctionData("initialize")
   );
-  await countryPermitModuleProxy.waitForDeployment();
+  await countryPermitModuleProxy.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   console.log(
     "Country Permit Module Proxy ->",
@@ -192,7 +192,7 @@ async function main() {
     CountryRestrictModule.bytecode,
     deployer
   ).deploy();
-  await countryRestrictModule.waitForDeployment();
+  await countryRestrictModule.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   const countryRestrictModuleProxy = await new ethers.ContractFactory(
     TRex.contracts.ModuleProxy.abi,
@@ -202,7 +202,7 @@ async function main() {
     await countryRestrictModule.getAddress(),
     countryRestrictModule.interface.encodeFunctionData("initialize")
   );
-  await countryRestrictModuleProxy.waitForDeployment();
+  await countryRestrictModuleProxy.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   console.log(
     "Country Restrict Module Proxy ->",
@@ -215,7 +215,7 @@ async function main() {
     MaxBalanceModule.bytecode,
     deployer
   ).deploy();
-  await maxBalanceModule.waitForDeployment();
+  await maxBalanceModule.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   const maxBalanceModuleProxy = await new ethers.ContractFactory(
     TRex.contracts.ModuleProxy.abi,
@@ -225,7 +225,7 @@ async function main() {
     await maxBalanceModule.getAddress(),
     maxBalanceModule.interface.encodeFunctionData("initialize")
   );
-  await maxBalanceModuleProxy.waitForDeployment();
+  await maxBalanceModuleProxy.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   console.log(
     "Max Balance Module Proxy ->",
@@ -238,7 +238,7 @@ async function main() {
     MaxTotalSupplyModule.bytecode,
     deployer
   ).deploy();
-  await maxTotalSupplyModule.waitForDeployment();
+  await maxTotalSupplyModule.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   const maxTotalSupplyModuleProxy = await new ethers.ContractFactory(
     TRex.contracts.ModuleProxy.abi,
@@ -248,7 +248,7 @@ async function main() {
     await maxTotalSupplyModule.getAddress(),
     maxTotalSupplyModule.interface.encodeFunctionData("initialize")
   );
-  await maxTotalSupplyModuleProxy.waitForDeployment();
+  await maxTotalSupplyModuleProxy.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   console.log(
     "Max Total Supply Module Proxy ->",
@@ -261,7 +261,7 @@ async function main() {
     MinInvestmentModule.bytecode,
     deployer
   ).deploy();
-  await minInvestmentModule.waitForDeployment();
+  await minInvestmentModule.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   const minInvestmentModuleProxy = await new ethers.ContractFactory(
     TRex.contracts.ModuleProxy.abi,
@@ -271,7 +271,7 @@ async function main() {
     await minInvestmentModule.getAddress(),
     minInvestmentModule.interface.encodeFunctionData("initialize")
   );
-  await minInvestmentModuleProxy.waitForDeployment();
+  await minInvestmentModuleProxy.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   console.log(
     "Min Investment Module Proxy ->",
@@ -284,7 +284,7 @@ async function main() {
     LockInTransferModule.bytecode,
     deployer
   ).deploy();
-  await lockInTransferModule.waitForDeployment();
+  await lockInTransferModule.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   const lockInTransferModuleProxy = await new ethers.ContractFactory(
     TRex.contracts.ModuleProxy.abi,
@@ -294,7 +294,7 @@ async function main() {
     await lockInTransferModule.getAddress(),
     lockInTransferModule.interface.encodeFunctionData("initialize")
   );
-  await lockInTransferModuleProxy.waitForDeployment();
+  await lockInTransferModuleProxy.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   console.log(
     "Lock In Transfer Module Proxy ->",
@@ -307,7 +307,7 @@ async function main() {
     GlobalLockInTransferModule.bytecode,
     deployer
   ).deploy();
-  await globalLockInTransferModule.waitForDeployment();
+  await globalLockInTransferModule.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   const globalLockInTransferModuleProxy = await new ethers.ContractFactory(
     TRex.contracts.ModuleProxy.abi,
@@ -317,7 +317,7 @@ async function main() {
     await globalLockInTransferModule.getAddress(),
     globalLockInTransferModule.interface.encodeFunctionData("initialize")
   );
-  await globalLockInTransferModuleProxy.waitForDeployment();
+  await globalLockInTransferModuleProxy.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   console.log(
     "Global Lock In Transfer Module Proxy ->",
@@ -330,7 +330,7 @@ async function main() {
     TransferPermitModule.bytecode,
     deployer
   ).deploy();
-  await transferPermitModule.waitForDeployment();
+  await transferPermitModule.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   const transferPermitModuleProxy = await new ethers.ContractFactory(
     TRex.contracts.ModuleProxy.abi,
@@ -340,7 +340,7 @@ async function main() {
     await transferPermitModule.getAddress(),
     transferPermitModule.interface.encodeFunctionData("initialize")
   );
-  await transferPermitModuleProxy.waitForDeployment();
+  await transferPermitModuleProxy.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   console.log(
     "Transfer Permit Module Proxy ->",
@@ -353,7 +353,7 @@ async function main() {
     MarketplaceManager.bytecode,
     deployer
   ).deploy();
-  await marketplaceManager.waitForDeployment();
+  await marketplaceManager.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   const marketplaceManagerProxy = await new ethers.ContractFactory(
     TransparentUpgradeableProxy.abi,
@@ -364,7 +364,7 @@ async function main() {
     deployer.address,
     marketplaceManager.interface.encodeFunctionData("initialize")
   );
-  await marketplaceManagerProxy.waitForDeployment();
+  await marketplaceManagerProxy.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   console.log(
     "Marketplace Manager Proxy ->",
@@ -376,7 +376,7 @@ async function main() {
     TRex.contracts.IdentityRegistryStorageProxy.bytecode,
     deployer
   ).deploy(await trexImplementationAuthority.getAddress());
-  await identityRegistryStorageProxy.waitForDeployment();
+  await identityRegistryStorageProxy.deploymentTransaction().wait(process.env.CONFIRMATIONS);
 
   console.log("Identity Registry Storage Proxy ->", await identityRegistryStorageProxy.getAddress());
 
@@ -385,10 +385,10 @@ async function main() {
     await identityRegistryStorageProxy.getAddress()
   );
   const txAddAgent = await irStorage.connect(deployer).addAgent(appAdmin);
-  await txAddAgent.wait();
+  await txAddAgent.wait(process.env.CONFIRMATIONS);
 
   const transferOwnershipIRS = await irStorage.connect(deployer).transferOwnership(await trexFactory.getAddress());
-  await transferOwnershipIRS.wait();
+  await transferOwnershipIRS.wait(process.env.CONFIRMATIONS);
 
   const addresses = {
     trexFactory: await trexFactory.getAddress(),
