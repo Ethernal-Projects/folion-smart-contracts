@@ -17,6 +17,8 @@
     "dotenv": "^17.4.2"
   },
   "scripts": {
-    "lint": "solhint \"contracts/**/*.sol\""
+    "lint": "solhint \"contracts/**/*.sol\"",
+    "node": "hardhat node",
+    "node:mining": "HARDHAT_INTERVAL_MINING=true hardhat node"
   }
 }
