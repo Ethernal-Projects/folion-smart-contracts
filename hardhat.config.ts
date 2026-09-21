@@ -10,6 +10,12 @@ import "./tasks/transfer";
 // tests and CI need a block per transaction.
 const intervalMining = process.env.HARDHAT_INTERVAL_MINING === "true";
 
+// Time in milliseconds (e.g., 3000ms = 3 seconds). A missing, unparseable or
+// non-positive value falls back, so a typo cannot stop blocks arriving.
+const parsedInterval = Number(process.env.HARDHAT_MINING_INTERVAL);
+const miningInterval =
+  Number.isFinite(parsedInterval) && parsedInterval > 0 ? parsedInterval : 3000;
+
 const config: HardhatUserConfig = {
   defaultNetwork: "folion",
   networks: {
@@ -35,7 +41,7 @@ const config: HardhatUserConfig = {
       ? {
           mining: {
             auto: false,
-            interval: 3000 // Time in milliseconds (e.g., 3000ms = 3 seconds)
+            interval: miningInterval
           }
         }
       : {},
