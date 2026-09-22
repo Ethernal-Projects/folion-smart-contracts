@@ -4,7 +4,6 @@ import TRex from "@tokenysolutions/t-rex";
 import { writeFileSync } from "fs";
 import { AwsKmsSigner } from "@cuonghx.gu-tech/ethers-aws-kms-signer";
 import "dotenv/config";
-import TransparentUpgradeableProxy from "@openzeppelin/contracts/build/contracts/TransparentUpgradeableProxy.json";
 import CountryPermitModule from "../artifacts/contracts/compliance/CountryPermitModule.sol/CountryPermitModule.json";
 import CountryRestrictModule from "../artifacts/contracts/compliance/CountryRestrictModule.sol/CountryRestrictModule.json";
 import MaxBalanceModule from "../artifacts/contracts/compliance/MaxBalanceModule.sol/MaxBalanceModule.json";
@@ -13,7 +12,6 @@ import MinInvestmentModule from "../artifacts/contracts/compliance/MinInvestment
 import LockInTransferModule from "../artifacts/contracts/compliance/LockInTransferModule.sol/LockInTransferModule.json";
 import GlobalLockInTransferModule from "../artifacts/contracts/compliance/GlobalLockInTransferModule.sol/GlobalLockInTransferModule.json";
 import TransferPermitModule from "../artifacts/contracts/compliance/TransferPermitModule.sol/TransferPermitModule.json";
-import MarketplaceManager from "../artifacts/contracts/marketplace/MarketplaceManager.sol/MarketplaceManager.json";
 import ERC3643Token from "../artifacts/contracts/token/ERC3643Token.sol/ERC3643Token.json";
 
 async function waitForSafeBlock(provider: ethers.JsonRpcProvider, txHash: string) {
@@ -402,32 +400,6 @@ async function main() {
     await transferPermitModuleProxy.getAddress()
   );
 
-  // MarketplaceManager
-  const marketplaceManager = await new ethers.ContractFactory(
-    MarketplaceManager.abi,
-    MarketplaceManager.bytecode,
-    deployer
-  ).deploy();
-  receipt = await marketplaceManager.deploymentTransaction().wait();
-  waitForSafeBlock(provider, receipt.hash);
-
-  const marketplaceManagerProxy = await new ethers.ContractFactory(
-    TransparentUpgradeableProxy.abi,
-    TransparentUpgradeableProxy.bytecode,
-    deployer
-  ).deploy(
-    await marketplaceManager.getAddress(),
-    deployer.address,
-    marketplaceManager.interface.encodeFunctionData("initialize")
-  );
-  receipt = await marketplaceManagerProxy.deploymentTransaction().wait();
-  waitForSafeBlock(provider, receipt.hash);
-
-  console.log(
-    "Marketplace Manager Proxy ->",
-    await marketplaceManagerProxy.getAddress()
-  );
-
   const identityRegistryStorageProxy = await new ethers.ContractFactory(
     TRex.contracts.IdentityRegistryStorageProxy.abi,
     TRex.contracts.IdentityRegistryStorageProxy.bytecode,
@@ -464,7 +436,24 @@ async function main() {
     lockInTransferModule: await lockInTransferModuleProxy.getAddress(),
     globalLockInTransferModule: await globalLockInTransferModuleProxy.getAddress(),
     transferPermitModule: await transferPermitModuleProxy.getAddress(),
-    marketplaceManager: await marketplaceManagerProxy.getAddress(),
+    // add remaining contracts for verification
+    identityImplementation: await identityImplementation.getAddress(),
+    identityImplementationAuthority: await identityImplementationAuthority.getAddress(),
+    trustedIssuersRegistryImplementation: await trustedIssuersRegistryImplementation.getAddress(),
+    identityRegistryStorageImplementation: await identityRegistryStorageImplementation.getAddress(),
+    identityRegistryImplementation: await identityRegistryImplementation.getAddress(),
+    claimTopicsRegistryImplementation: await claimTopicsRegistryImplementation.getAddress(),
+    modularComplianceImplementation: await modularComplianceImplementation.getAddress(),
+    trexImplementationAuthority: await trexImplementationAuthority.getAddress(),
+    tokenImplementation: await tokenImplementation.getAddress(),
+    countryPermitModuleImplementation: await countryPermitModule.getAddress(),
+    countryRestrictModuleImplementation: await countryRestrictModule.getAddress(),
+    globalLockInTransferModuleImplementation: await globalLockInTransferModule.getAddress(),
+    lockInTransferModuleImplementation: await lockInTransferModule.getAddress(),
+    maxBalanceModuleImplementation: await maxBalanceModule.getAddress(),
+    maxTotalSupplyModuleImplementation: await maxTotalSupplyModule.getAddress(),
+    minInvestmentModuleImplementation: await minInvestmentModule.getAddress(),
+    transferPermitModuleImplementation: await transferPermitModule.getAddress()
   };
 
   writeFileSync("addresses-folion.json", JSON.stringify(addresses, null, 2));
