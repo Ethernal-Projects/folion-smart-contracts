@@ -5,6 +5,17 @@ import "./tasks/mint-token";
 import "./tasks/kyc";
 import "./tasks/transfer";
 
+// Opt in on a dev machine: blocks arrive on a clock rather than one per tx, so the
+// app sees pending states as it would on a real chain. Off by default, because
+// tests and CI need a block per transaction.
+const intervalMining = process.env.HARDHAT_INTERVAL_MINING === "true";
+
+// Time in milliseconds (e.g., 3000ms = 3 seconds). A missing, unparseable or
+// non-positive value falls back, so a typo cannot stop blocks arriving.
+const parsedInterval = Number(process.env.HARDHAT_MINING_INTERVAL);
+const miningInterval =
+  Number.isFinite(parsedInterval) && parsedInterval > 0 ? parsedInterval : 3000;
+
 const config: HardhatUserConfig = {
   defaultNetwork: "folion",
   networks: {
@@ -26,6 +37,14 @@ const config: HardhatUserConfig = {
         "0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6"  // tokenAgent
       ],
     },
+    hardhat: intervalMining
+      ? {
+          mining: {
+            auto: false,
+            interval: miningInterval
+          }
+        }
+      : {},
   },
   solidity: {
     version: "0.8.17",
