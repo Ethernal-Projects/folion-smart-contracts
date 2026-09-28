@@ -35,3 +35,4 @@ jobs:
         run: npx hardhat test --network hardhat
         env:
           REPORT_GAS: ${{ vars.REPORT_GAS }}
+          HARDHAT_BLOCK_INTERVAL_DISABLED: "true"
